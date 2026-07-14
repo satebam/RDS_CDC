@@ -215,12 +215,20 @@ class SnapshotEngine:
 
         await self._target.execute(f"TRUNCATE TABLE [{schema}].[{staging_table}]")
 
+        await self._target.execute(
+            f"SET IDENTITY_INSERT [{schema}].[{staging_table}] ON"
+        )
+
         col_list = ", ".join(f"[{c}]" for c in columns)
         placeholders = ", ".join("?" for _ in columns)
         insert_sql = f"INSERT INTO [{schema}].[{staging_table}] ({col_list}) VALUES ({placeholders})"
 
         param_sets = [tuple(row[c] for c in columns) for row in batch]
         await self._target.execute_many(insert_sql, param_sets, fast=True)
+
+        await self._target.execute(
+            f"SET IDENTITY_INSERT [{schema}].[{staging_table}] OFF"
+        )
 
         merge_sql = self._merge_builder.build_bulk_merge_from_staging(
             target_schema=table.target_schema,
