@@ -32,7 +32,7 @@ async def check_capture_instances(
             )
             continue
 
-        instance_names = [row[0] for row in rows]
+        instance_names = [row[2] for row in rows]
         if table.resolved_capture_instance not in instance_names:
             errors.append(
                 f"Capture instance '{table.resolved_capture_instance}' not found for "
